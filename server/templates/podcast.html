@@ -1,0 +1,40 @@
+<div class="row">
+	<div class="span3">
+		<img src="{{.Image}}" />
+		<!-- Display data like No. of episodes here -->
+		<div class="podcastinfo">
+			<i class="icon-globe"></i><a href="{{.Site}}">Website</a><br>
+		</div>
+	</div>
+	<div class="span9">
+		<h1>{{.Name}}</h1>
+		<hr>
+		<p>{{.Summary}}</p>
+		<hr>
+		<table>
+			<tr>
+				<th>Episode</th>
+				<th>Time</th>
+				<th>Date</th>
+				<th>Downloaded?</th>
+			</tr>
+			<!--OMG I like Go templates -->
+			{{range .PodcastEpisodes}}
+			<tr>
+				
+					<td><a href="../episode/?episode={{.URL}}">{{.Title}}</a></td>
+					<td>{{.Length}}</td>
+					<td>{{.PubDateText}}</td>
+					<!--OMG You can do conditionals! -->
+					<td>{{if .Downloaded}}
+							Yes
+						{{else}}
+							No
+						{{end}}
+					</td>
+				
+			</tr>
+			{{end}}
+		</table>
+	</div>
+</div>

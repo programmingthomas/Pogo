@@ -1,0 +1,34 @@
+<!DOCTYPE hmtl>
+<html>
+<head>
+	<title>{{.Title}}</title>
+	<!-- Bootstrap -->
+	<link rel="stylesheet" type="text/css" href="{{.URL}}/css/bootstrap.min.css" />
+	<link rel="stylesheet" type="text/css" href="{{.URL}}/css/bootstrap-responsive.min.css">
+	<script type="text/javascript" src="{{.URL}}/js/jquery.min.js"></script>
+	<script type="text/javascript" src="{{.URL}}/js/bootstrap.min.js"></script>
+	<!--My stuff-->
+	<link rel="stylesheet" type="text/css" href="{{.URL}}/css/css.css" />
+</head>
+<body>
+	<div class="navbar navbar-fixed-top">
+		<div class="navbar-inner">
+			<div class="container">
+				<a class="brand" href="{{.URL}}/home">Pogo</a>
+				<ul class="nav pull-right">
+					<li><a href="{{.URL}}/about">About</a></li>
+					<li><a href="{{.URL}}/settings">Settings</a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="container">
+		<div class="content">
+			{{.Content}}
+		</div>
+		<hr>
+		<footer>&copy; Copyright Programming Thomas 2013. Pogo is open-source software available from <a href="http://github.com/programmingthomas/pogo">GitHub</a>.</footer>
+		<br>
+	</div>
+</body>
+</html>

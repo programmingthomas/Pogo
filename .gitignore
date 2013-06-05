@@ -20,3 +20,9 @@ _cgo_export.*
 _testmain.go
 
 *.exe
+pogo
+*.json
+/downloads/
+downloads/*
+downloads
+downloads/

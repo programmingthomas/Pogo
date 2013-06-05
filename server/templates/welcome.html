@@ -1,0 +1,18 @@
+<h1>All Podcasts</h1>
+<p>All of the podcasts you are currently subscribed to are listed below. <a href="podcasts/add">Add a podcast</a>.</p>
+<hr>
+<div class="row">
+	{{range .}}
+	<div class="span4 podcast">
+		<div class="row">
+			<div class="span1">
+				<a href="podcast/{{.Acronym}}"><img src="{{.Image}}" /></a>
+			</div>
+			<div class="span3">
+				<a href="podcast/{{.Acronym}}"><h3>{{.Name}}</h3></a>
+				<p>{{.Subtitle}}</h2>
+			</div>
+		</div>
+	</div>
+	{{end}}
+</div>
