@@ -67,7 +67,8 @@ func StartCatcher(configSaveLocation string) Catcher {
 		pogoutils.CreateFolder("downloads")
 	}
 	catcher := Catcher{}
-	if FileExists(configSaveLocation) {
+	_, er := os.Stat(configSaveLocation)
+	if er == nil {
 		contents, err := ioutil.ReadFile(configSaveLocation)
 		if err == nil {
 			json.Unmarshal(contents, &catcher)
@@ -316,7 +317,7 @@ func (episode PodEpisode) PlainTextDescriptionBeginning() template.HTML {
 //Gets a date like 'Today' or 'Yesterday' to represent the date
 func (episode PodEpisode) PubDateText() string { 
 	now := time.Now()
-	then = episode.ReleaseDate()
+	then := episode.ReleaseDate()
 	if now.Day() == then.Day() && now.Month() == then.Month() && now.Year() == then.Year() {
 		return "Today"
 	}
