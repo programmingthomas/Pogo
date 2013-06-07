@@ -100,7 +100,7 @@ func addPodcastHandler(w http.ResponseWriter, r * http.Request) {
 
 //Generic page handler contains the main template
 func pageHandler(page Page, template string, w http.ResponseWriter) {
-	w.Header().Add("Content-Type", "text/html")
+	w.Header().Add("Content-Type", "text/html; charset=utf-8")
 	err := templates.ExecuteTemplate(w, template, page)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
