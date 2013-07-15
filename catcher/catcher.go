@@ -1,62 +1,62 @@
 package catcher
 
 import (
-	"net/http"
-	"encoding/xml"
-	"encoding/json"
-	"time"
-	"fmt"
-	"os"
-	"io/ioutil"
 	"bytes"
-	"strings"
-	"strconv"
+	"encoding/json"
+	"encoding/xml"
+	"fmt"
+	"github.com/programmingthomas/Pogo/pogoutils"
 	"html/template"
-	"regexp"
+	"io/ioutil"
+	"net/http"
+	"os"
 	"path"
-	"github.com/programmingthomas/pogo/pogoutils"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
 )
 
 //A podcast episode (as stored in pogoconfig.json)
 type PodEpisode struct {
-	URL string
-	Description template.HTML
+	URL                           string
+	Description                   template.HTML
 	ShouldDownloadIfNotDownloaded bool
-	Title string
-	Author string
-	Summary string
-	PubDate string
-	Type string
-	Length time.Duration
-	Image string
+	Title                         string
+	Author                        string
+	Summary                       string
+	PubDate                       string
+	Type                          string
+	Length                        time.Duration
+	Image                         string
 }
 
 //A podcast feed (as stored in pogoconfig.json)
 type PodFeed struct {
-	Name string
-	FeedURL string
-	Site string
-	LastRefreshed time.Time
-	Language string
+	Name            string
+	FeedURL         string
+	Site            string
+	LastRefreshed   time.Time
+	Language        string
 	PodcastEpisodes []PodEpisode
-	Copyright string
-	Subtitle string
-	Description string
-	Summary string
-	Image string
-	Categories []string
-	ID string
-	Acronym string
+	Copyright       string
+	Subtitle        string
+	Description     string
+	Summary         string
+	Image           string
+	Categories      []string
+	ID              string
+	Acronym         string
 }
 
 //A catcher is the tool that will catch the podcasts and run a scheduled loop in the
 //background
 type Catcher struct {
-	Podcasts []PodFeed
+	Podcasts        []PodFeed
 	RefreshInterval time.Duration
-	ConfigLocation string
-	addFeed chan PodFeed
-	ticker * time.Ticker
+	ConfigLocation  string
+	addFeed         chan PodFeed
+	ticker          *time.Ticker
 	updatedPodcasts chan []PodFeed
 }
 
@@ -90,7 +90,7 @@ func StartCatcher(configSaveLocation string) Catcher {
 }
 
 //A concurrent task that will refresh podcasts
-func (catcher * Catcher) Refresher() {
+func (catcher *Catcher) Refresher() {
 	//Refresh once at the beginning
 	catcher.RefreshAllPodcasts()
 	for {
@@ -110,17 +110,17 @@ func (catcher * Catcher) Refresher() {
 }
 
 //Should be run concurrently to refresh all podcasts
-func (catcher * Catcher) RefreshAllPodcasts() {
+func (catcher *Catcher) RefreshAllPodcasts() {
 	fmt.Println("Refreshing all podcasts", len(catcher.Podcasts))
 	for _, podcast := range catcher.Podcasts {
 		podcast.Refresh(catcher)
 	}
 	catcher.updatedPodcasts <- catcher.Podcasts
-	go catcher.SaveData();
+	go catcher.SaveData()
 }
 
 //Refresh an individual podcast
-func (podFeed * PodFeed) Refresh(parent * Catcher) {
+func (podFeed *PodFeed) Refresh(parent *Catcher) {
 	fmt.Println("Refreshing", podFeed.Name)
 	resp, err := http.Get(podFeed.FeedURL)
 	if err == nil {
@@ -146,19 +146,19 @@ func (podFeed * PodFeed) Refresh(parent * Catcher) {
 					}
 				}
 			}
-		} 
+		}
 	}
 	for _, episode := range podFeed.PodcastEpisodes {
 		if episode.ShouldDownloadIfNotDownloaded && !episode.Downloaded() {
 			_, filename := path.Split(episode.URL)
 			episode.ShouldDownloadIfNotDownloaded = false
-			go pogoutils.Download(episode.URL, "downloads/" + filename)
+			go pogoutils.Download(episode.URL, "downloads/"+filename)
 		}
 	}
 }
 
 //Should be run concurrently. Will save all data to the configuration file
-func (catcher * Catcher) SaveData() {
+func (catcher *Catcher) SaveData() {
 	b, jsonErr := json.MarshalIndent(catcher, "", "    ")
 	if jsonErr == nil {
 		file, fileErr := os.Create(catcher.ConfigLocation)
@@ -175,7 +175,7 @@ func (catcher * Catcher) SaveData() {
 }
 
 //Should be run concurrently. Subscribe to a podcast feed
-func (catcher * Catcher) AddPodcastFeed(feedURL string) {
+func (catcher *Catcher) AddPodcastFeed(feedURL string) {
 	//Firstly check if the podcast feed has already been added
 	for _, podcast := range catcher.Podcasts {
 		if podcast.FeedURL == feedURL {
@@ -192,13 +192,13 @@ func (catcher * Catcher) AddPodcastFeed(feedURL string) {
 			if err == nil {
 				catcher.AddPodcast(xmlResponse, feedURL)
 			}
-		} 
+		}
 	}
-	
+
 }
 
 //Will add a podcast given by AddPodcastFeed. Do not call directly
-func (catcher * Catcher) AddPodcast(xml Fetched, feedURL string) {
+func (catcher *Catcher) AddPodcast(xml Fetched, feedURL string) {
 	podcast := catcher.getPodcastFromXML(xml, feedURL)
 	mostRecentEpisode := podcast.PodcastEpisodes[0]
 	mostRecentEpisode.ShouldDownloadIfNotDownloaded = true
@@ -210,7 +210,7 @@ func (catcher * Catcher) AddPodcast(xml Fetched, feedURL string) {
 }
 
 //Gets a PodFeed object from some fetched XML
-func (catcher * Catcher) getPodcastFromXML(xml Fetched, feedURL string) PodFeed {
+func (catcher *Catcher) getPodcastFromXML(xml Fetched, feedURL string) PodFeed {
 	channel := xml.Channel
 	podcast := PodFeed{}
 	podcast.Name = channel.Title
@@ -236,7 +236,7 @@ func (catcher * Catcher) getPodcastFromXML(xml Fetched, feedURL string) PodFeed 
 	podcast.Acronym = Acronym(podcast.Name)
 	podcast.ID = catcher.UniqueIDForPodcast(podcast.Acronym)
 	podcast.PodcastEpisodes = make([]PodEpisode, 0)
-	
+
 	for _, item := range channel.Items {
 		episode := PodEpisode{}
 		episode.Description = template.HTML(item.Description)
@@ -253,7 +253,7 @@ func (catcher * Catcher) getPodcastFromXML(xml Fetched, feedURL string) PodFeed 
 }
 
 //Checks to see if an acronym is unique and if not appends a number
-func (catcher * Catcher) UniqueIDForPodcast(podcastAcronym string) string {
+func (catcher *Catcher) UniqueIDForPodcast(podcastAcronym string) string {
 	suffix := 1
 	for _, podcast := range catcher.Podcasts {
 		if podcast.Acronym == podcastAcronym {
@@ -287,17 +287,17 @@ func ParseDuration(dur string) time.Duration {
 	d = 0
 	//Has seconds component
 	if len(split) >= 1 {
-		t, _ := strconv.ParseInt(split[len(split) - 1], 0, 0)
+		t, _ := strconv.ParseInt(split[len(split)-1], 0, 0)
 		d += t * int64(time.Second)
 	}
 	//Has minutes components
 	if len(split) >= 2 {
-		t, _ := strconv.ParseInt(split[len(split) - 2], 0, 0)
+		t, _ := strconv.ParseInt(split[len(split)-2], 0, 0)
 		d += t * int64(time.Minute)
 	}
 	//Has hour component (unlikely?)
 	if len(split) >= 3 {
-		t, _ := strconv.ParseInt(split[len(split) - 3], 0, 0)
+		t, _ := strconv.ParseInt(split[len(split)-3], 0, 0)
 		d += t * int64(time.Hour)
 	}
 	return time.Duration(d)
@@ -315,7 +315,7 @@ func (episode PodEpisode) PlainTextDescriptionBeginning() template.HTML {
 }
 
 //Gets a date like 'Today' or 'Yesterday' to represent the date
-func (episode PodEpisode) PubDateText() string { 
+func (episode PodEpisode) PubDateText() string {
 	now := time.Now()
 	then := episode.ReleaseDate()
 	if now.Day() == then.Day() && now.Month() == then.Month() && now.Year() == then.Year() {
@@ -344,7 +344,7 @@ func (episode PodEpisode) ReleaseDate() time.Time {
 
 //Ensures that the current thread is using the most up to date version of the podcasts
 //(resolves concurrency issues?!)
-func (catcher * Catcher) UpdateAll() {
+func (catcher *Catcher) UpdateAll() {
 	fmt.Println("Update all")
 	select {
 	case podcasts := <-catcher.updatedPodcasts:
