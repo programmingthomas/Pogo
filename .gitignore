@@ -21,6 +21,7 @@ _testmain.go
 
 *.exe
 pogo
+Pogo
 *.json
 /downloads/
 downloads/*

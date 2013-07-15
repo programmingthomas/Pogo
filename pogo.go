@@ -1,6 +1,6 @@
 package main
 
-import "github.com/programmingthomas/pogo/server"
+import "github.com/programmingthomas/Pogo/server"
 
 func main() {
 	//Starts a pogo server...

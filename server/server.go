@@ -1,22 +1,22 @@
 package server
 
 import (
-	"net/http"
-	"github.com/programmingthomas/pogo/catcher"
-	"github.com/programmingthomas/pogo/pogoutils"
+	"bytes"
 	"fmt"
+	"github.com/programmingthomas/Pogo/catcher"
+	"github.com/programmingthomas/Pogo/pogoutils"
 	"html/template"
+	"net/http"
+	"net/url"
 	"path"
 	"time"
-	"bytes"
-	"net/url"
 )
 
 //A generic type that is used when serving up pages that require the standard template
 type Page struct {
-	URL string
+	URL     string
 	Content template.HTML
-	Title string
+	Title   string
 }
 
 type Podcast struct {
@@ -27,13 +27,13 @@ var templates = template.Must(template.ParseFiles("server/templates/index.html",
 var PodCatcher catcher.Catcher
 
 //Handles the CSS, JS and Bootstrap resources
-func resHandler(w http.ResponseWriter, r * http.Request) {
+func resHandler(w http.ResponseWriter, r *http.Request) {
 	_, filename := path.Split(r.URL.Path)
 	fullPath := "server/res/" + filename
 	fileExists := pogoutils.FileExists(fullPath)
 	if fileExists {
 		lastModTime := pogoutils.LastMod(fullPath)
-		//This checks whether or not the Header was submitted with 
+		//This checks whether or not the Header was submitted with
 		//If-Modified-Since, which reduces server IO, only do if Cache is enabled
 		if r.Header["If-Modified-Since"] != nil && Cache {
 			//RFC1123 is the standard date format used with HTTP
@@ -44,7 +44,7 @@ func resHandler(w http.ResponseWriter, r * http.Request) {
 			}
 		}
 		//Writer the header and content
-		if (Cache) {
+		if Cache {
 			w.Header().Add("Last-Modified", lastModTime.Format(time.RFC1123))
 		}
 		//Go has a function for serving files easily
@@ -58,8 +58,8 @@ func resHandler(w http.ResponseWriter, r * http.Request) {
 }
 
 //Serves the homepage
-func homeHandler(w http.ResponseWriter, r * http.Request) {
-	page := Page{URL:fmt.Sprintf("%s:%d", Path, Port), Title:"Pogo"}
+func homeHandler(w http.ResponseWriter, r *http.Request) {
+	page := Page{URL: fmt.Sprintf("%s:%d", Path, Port), Title: "Pogo"}
 	content := bytes.NewBufferString("")
 	//Update podcast list
 	PodCatcher.UpdateAll()
@@ -69,8 +69,8 @@ func homeHandler(w http.ResponseWriter, r * http.Request) {
 }
 
 //Serves the really exciting about page
-func aboutHandler(w http.ResponseWriter, r * http.Request) {
-	page := Page{URL:fmt.Sprintf("%s:%d", Path, Port), Title:"About - Pogo"}
+func aboutHandler(w http.ResponseWriter, r *http.Request) {
+	page := Page{URL: fmt.Sprintf("%s:%d", Path, Port), Title: "About - Pogo"}
 	content := bytes.NewBufferString("")
 	templates.ExecuteTemplate(content, "about.html", nil)
 	page.Content = template.HTML(content.String())
@@ -79,7 +79,7 @@ func aboutHandler(w http.ResponseWriter, r * http.Request) {
 
 //Serves the add podcast page and if the request is a POST request it will subscribe to the
 //podcast in the 'feedurl' parameter
-func addPodcastHandler(w http.ResponseWriter, r * http.Request) {
+func addPodcastHandler(w http.ResponseWriter, r *http.Request) {
 	//I.e. add a podcast feed
 	if r.Method == "POST" {
 		if r.FormValue("feedurl") != "" {
@@ -91,7 +91,7 @@ func addPodcastHandler(w http.ResponseWriter, r * http.Request) {
 			}
 		}
 	}
-	page := Page{URL:fmt.Sprintf("%s:%d", Path, Port), Title:"Add podcast - Pogo"}
+	page := Page{URL: fmt.Sprintf("%s:%d", Path, Port), Title: "Add podcast - Pogo"}
 	content := bytes.NewBufferString("")
 	templates.ExecuteTemplate(content, "addfeed.html", nil)
 	page.Content = template.HTML(content.String())
@@ -110,17 +110,17 @@ func pageHandler(page Page, template string, w http.ResponseWriter) {
 
 //Allows you to download the configuration file in case you wanted to build something on
 //top of Pogo (like a mobile app)
-func pogoConfigHandler(w http.ResponseWriter, r * http.Request) {
+func pogoConfigHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "pogoconfig.json")
 }
 
 //Serves up a page with info for a certain podcast
-func podcastHandler(w http.ResponseWriter, r * http.Request) {
+func podcastHandler(w http.ResponseWriter, r *http.Request) {
 	base := path.Base(r.URL.Path)
 	if base != "podcasts" {
 		for _, podcast := range PodCatcher.Podcasts {
 			if podcast.ID == base {
-				page := Page{URL:fmt.Sprintf("%s:%d", Path, Port), Title:podcast.Name + " - Pogo"}
+				page := Page{URL: fmt.Sprintf("%s:%d", Path, Port), Title: podcast.Name + " - Pogo"}
 				content := bytes.NewBufferString("")
 				templates.ExecuteTemplate(content, "podcast.html", podcast)
 				page.Content = template.HTML(content.String())
@@ -132,13 +132,13 @@ func podcastHandler(w http.ResponseWriter, r * http.Request) {
 }
 
 //Serves up a page with the info for an individual podcast
-func episodeHandler(w http.ResponseWriter, r * http.Request) {
+func episodeHandler(w http.ResponseWriter, r *http.Request) {
 	PodCatcher.UpdateAll()
 	if r.FormValue("episode") != "" {
 		for _, podcast := range PodCatcher.Podcasts {
 			for _, episode := range podcast.PodcastEpisodes {
 				if episode.URL == r.FormValue("episode") {
-					page := Page{URL:fmt.Sprintf("%s:%d", Path, Port), Title:episode.Title + " - Pogo"}
+					page := Page{URL: fmt.Sprintf("%s:%d", Path, Port), Title: episode.Title + " - Pogo"}
 					content := bytes.NewBufferString("")
 					templates.ExecuteTemplate(content, "episode.html", episode)
 					page.Content = template.HTML(content.String())
@@ -151,11 +151,11 @@ func episodeHandler(w http.ResponseWriter, r * http.Request) {
 }
 
 //Serves up video/audio
-func downloadHandler(w http.ResponseWriter, r * http.Request) {
+func downloadHandler(w http.ResponseWriter, r *http.Request) {
 	_, filename := path.Split(r.URL.Path)
 	if pogoutils.FileExists("downloads/" + filename) {
 		fmt.Println("Serving downloads/", filename)
-		http.ServeFile(w, r, "downloads/" + filename)
+		http.ServeFile(w, r, "downloads/"+filename)
 	}
 }
 
